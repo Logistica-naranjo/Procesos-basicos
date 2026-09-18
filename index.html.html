@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Básico de Ejecución de Proyectos de Construcción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16264A;
+    --navy2:#1F3868;
+    --navy-soft:#EAEFF8;
+    --orange:#F2871B;
+    --orange-soft:#FDECD9;
+    --green:#2CA35C;
+    --green-soft:#E3F5EA;
+    --bg:#F2F5FA;
+    --white:#FFFFFF;
+    --text:#22304A;
+    --muted:#5B6B85;
+    --border:#E2E7F0;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;}
+  h1,h2,h3,.num{font-family:'Barlow Condensed',sans-serif;font-weight:700;}
+  .icon{width:1em;height:1em;display:inline-block;vertical-align:middle;}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px;}
+
+  /* HERO */
+  header.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:40px 0 32px;}
+  .hero-inner{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .badge-circle{width:64px;height:64px;border-radius:50%;background:#fff;color:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+  .badge-circle .icon{width:34px;height:34px;}
+  .hero-text h1{margin:0;font-size:34px;letter-spacing:.2px;}
+  .hero-text p{margin:6px 0 0;color:#C9D5EC;font-size:16px;font-family:'Inter',sans-serif;}
+  .stats-row{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap;}
+  .stat-pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 18px;font-size:14px;}
+  .stat-pill b{font-family:'Barlow Condensed',sans-serif;font-size:18px;color:var(--orange);margin-right:6px;}
+
+  /* NAV / TABS */
+  nav.phase-nav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .nav-inner{display:flex;align-items:center;gap:0;padding:14px 24px;max-width:1140px;margin:0 auto;flex-wrap:wrap;}
+  .tabs{display:flex;flex:1;min-width:280px;}
+  .phase-tab{
+    position:relative;
+    background:var(--navy-soft);
+    color:var(--navy);
+    border:none;
+    cursor:pointer;
+    padding:10px 22px 10px 30px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
+    margin-left:-14px;
+    display:flex;align-items:center;gap:8px;
+    transition:background .15s, color .15s;
+    white-space:nowrap;
+  }
+  .phase-tab:first-child{margin-left:0;clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);}
+  .phase-tab .tnum{background:#fff;color:var(--navy);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+  .phase-tab.active{background:var(--navy);color:#fff;}
+  .phase-tab.active .tnum{background:var(--orange);color:#fff;}
+  .phase-tab:hover:not(.active){background:#dfe6f4;}
+  .tab-label{display:none;}
+  @media(min-width:720px){.tab-label{display:inline;}}
+
+  .nav-extra{display:flex;align-items:center;gap:14px;}
+  .search-box{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;}
+  .search-box input{border:none;background:transparent;outline:none;font-family:'Inter';font-size:14px;width:140px;color:var(--text);}
+  .search-box .icon{width:16px;height:16px;color:var(--muted);}
+  .overall-progress{display:flex;flex-direction:column;align-items:flex-end;font-size:12px;color:var(--muted);min-width:120px;}
+  .bar-track{width:120px;height:7px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:4px;}
+  .bar-fill{height:100%;background:var(--green);width:0%;transition:width .25s;}
+  .reset-link{margin-top:4px;font-size:11px;color:var(--muted);text-decoration:none;}
+  .reset-link:hover{color:var(--orange);text-decoration:underline;}
+
+  main{max-width:1140px;margin:0 auto;padding:28px 24px 60px;}
+
+  .phase-panel{display:none;}
+  .phase-panel.active{display:block;animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .phase-banner{
+    background:var(--navy);color:#fff;border-radius:var(--radius);
+    padding:20px 26px;display:flex;align-items:center;gap:16px;margin-bottom:6px;
+    clip-path:polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%);
+  }
+  .phase-banner .tnum{background:var(--orange);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .phase-banner h2{margin:0;font-size:26px;}
+  .phase-banner .icon{width:26px;height:26px;margin-right:2px;}
+  .phase-desc{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin:14px 0 20px;color:var(--muted);font-size:14.5px;}
+
+  .progress-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .progress-row .bar-track{flex:1;height:9px;}
+  .progress-row .pct{font-family:'Barlow Condensed';font-weight:700;color:var(--navy);font-size:16px;min-width:44px;text-align:right;}
+
+  .section-label{font-size:13px;text-transform:none;color:var(--muted);font-weight:600;margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .section-label .icon{width:16px;height:16px;color:var(--orange);}
+
+  .tool-row{
+    display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--border);
+    border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:background .15s,border-color .15s;
+  }
+  .tool-row:hover{border-color:#cfd8e8;}
+  .tool-row.checked{background:var(--green-soft);border-color:#b9e3c9;}
+  .tool-row.suggested{border-style:dashed;border-color:#f3c68e;}
+  .tool-row.suggested.checked{border-style:solid;}
+  .tbadge{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-family:'Barlow Condensed';font-weight:700;color:var(--muted);background:#fff;}
+  .tool-row.suggested .tbadge{border-color:var(--orange);color:var(--orange);}
+  .tool-row.checked .tbadge{background:var(--green);border-color:var(--green);color:#fff;}
+  .tool-name{flex:1;font-size:14.5px;font-weight:500;color:var(--text);}
+  .tool-row.checked .tool-name{color:#2c6e46;}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+  .tag{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap;display:flex;align-items:center;gap:4px;}
+  .tag .icon{width:11px;height:11px;}
+  .tag-construccion{background:var(--navy-soft);color:var(--navy);}
+  .tag-administracion{background:var(--orange-soft);color:#a15a0e;}
+  .tag-sso{background:var(--green-soft);color:#1d7a41;}
+  .tag-calidad{background:#EDE7FB;color:#5B3FBF;}
+  .tag-postventa{background:#FCE7EF;color:#B23568;}
+  .sugerido-flag{background:var(--orange);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;}
+
+  /* KNOWLEDGE AREAS */
+  section.ka{margin-top:56px;}
+  .ka-header{text-align:left;margin-bottom:20px;}
+  .ka-header h2{font-size:28px;color:var(--navy);margin:0 0 4px;}
+  .ka-header p{color:var(--muted);margin:0;font-size:14.5px;}
+  .ka-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+  .ka-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;}
+  .ka-card.suggested{border:1px dashed var(--orange);}
+  .ka-card .ka-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .ka-icon{width:36px;height:36px;border-radius:50%;background:var(--navy-soft);color:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .ka-card.suggested .ka-icon{background:var(--orange-soft);color:var(--orange);}
+  .ka-icon .icon{width:19px;height:19px;}
+  .ka-card h3{margin:0;font-size:17px;color:var(--text);font-family:'Inter';font-weight:700;}
+  .ka-card p{margin:0;font-size:13px;color:var(--muted);}
+  .ka-ribbon{position:absolute;top:-9px;right:14px;background:var(--orange);color:#fff;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:99px;}
+
+  /* RECOMMENDATIONS */
+  section.reco{margin-top:56px;}
+  .reco h2{font-size:28px;color:var(--navy);margin:0 0 16px;}
+  .reco-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+  .reco-card{background:#fff;border-left:4px solid var(--orange);border-radius:8px;padding:16px 18px;box-shadow:0 1px 4px rgba(20,30,60,.04);}
+  .reco-card h4{margin:0 0 6px;font-size:15.5px;color:var(--navy);}
+  .reco-card p{margin:0;font-size:13.5px;color:var(--muted);}
+
+  footer{background:var(--navy);color:#C9D5EC;padding:26px 0;margin-top:60px;}
+  .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;}
+  .print-btn{background:var(--orange);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-family:'Inter';font-weight:600;font-size:13.5px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .print-btn .icon{width:15px;height:15px;}
+
+  @media print{
+    nav.phase-nav{display:none;}
+    .phase-panel{display:block !important;page-break-before:always;}
+    footer{display:none;}
+    header.hero{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="badge-circle" id="heroIcon"></div>
+    <div class="hero-text">
+      <h1>Manual Básico de Ejecución de Proyectos de Construcción</h1>
+      <p>Guía práctica de procesos y herramientas mínimas para el Residente de Proyectos — Constructora E4</p>
+    </div>
+  </div>
+  <div class="wrap stats-row">
+    <div class="stat-pill"><b id="stat-fases">5</b>fases del proyecto</div>
+    <div class="stat-pill"><b id="stat-tools">0</b>herramientas y procesos</div>
+    <div class="stat-pill"><b id="stat-ka">10</b>áreas de conocimiento (PMI)</div>
+  </div>
+</header>
+
+<nav class="phase-nav">
+  <div class="nav-inner">
+    <div class="tabs" id="tabs"></div>
+    <div class="nav-extra">
+      <div class="search-box">
+        <span id="searchIcon"></span>
+        <input type="text" id="searchInput" placeholder="Buscar herramienta...">
+      </div>
+      <div class="overall-progress">
+        <span id="overallLabel">0 / 0 completado</span>
+        <div class="bar-track"><div class="bar-fill" id="overallBar"></div></div>
+        <a href="#" class="reset-link" onclick="resetProgress();return false;">Reiniciar progreso</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div id="panels"></div>
+
+  <section class="ka">
+    <div class="ka-header">
+      <h2>Áreas de Conocimiento (marco PMI)</h2>
+      <p>Estas áreas agrupan las herramientas anteriores y sirven para verificar que el proyecto está cubierto integralmente. Se agregó una décima área respecto a tu propuesta original.</p>
+    </div>
+    <div class="ka-grid" id="kaGrid"></div>
+  </section>
+
+  <section class="reco">
+    <h2>Recomendaciones del análisis PMP</h2>
+    <div class="reco-grid" id="recoGrid"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <span>Manual generado a partir del documento base "Procesos Básicos de Obra" + análisis PMP · Constructora E4</span>
+    <button class="print-btn" onclick="window.print()"><span id="printIcon"></span> Exportar / Imprimir</button>
+  </div>
+</footer>
+
+<script>
+const ICONS = {
+  hardhat: '<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 14c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="2" y="14" width="20" height="2.6" rx="1.3" fill="currentColor"/><rect x="10.7" y="5" width="2.6" height="4" rx="1" fill="currentColor"/></svg>',
+  briefcase: '<svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.8"/><line x1="3" y1="13" x2="21" y2="13" stroke="currentColor" stroke-width="1.8"/></svg>',
+  shield: '<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  quality: '<svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.8"/><line x1="14.5" y1="14.5" x2="20" y2="20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.3 10l1.8 1.8L13 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  postventa: '<svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M9 13.5L7.5 21l4.5-2.5L16.5 21 15 13.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  stakeholders: '<svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="8.5" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="9" r="2.3" stroke="currentColor" stroke-width="1.8"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.5 14.3c2.3.2 4 1.9 4 4.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  flag: '<svg class="icon" viewBox="0 0 24 24" fill="none"><line x1="5" y1="3" x2="5" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 4h13l-3 4 3 4H5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  clipboard: '<svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="9" y="2.5" width="6" height="3" rx="1" fill="currentColor"/><line x1="8" y1="10" x2="16" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="8" y1="14" x2="16" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="8" y1="18" x2="13" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  gear: '<svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3 5.6 5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  gauge: '<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 16a8 8 0 1 1 16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="12" y1="16" x2="15.5" y2="10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1.3" fill="currentColor"/></svg>',
+  checkflag: '<svg class="icon" viewBox="0 0 24 24" fill="none"><line x1="5" y1="3" x2="5" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 4h13l-3 4 3 4H5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 6.1l1.1 1.1L10 5.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  search: '<svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  print: '<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M6 9V3h12v6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><rect x="4" y="9" width="16" height="8" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="7" y="14" width="10" height="7" stroke="currentColor" stroke-width="1.8"/></svg>'
+};
+
+const AREA_MAP = {
+  'Construcción': {cls:'tag-construccion', icon:'hardhat'},
+  'Administración': {cls:'tag-administracion', icon:'briefcase'},
+  'SSO': {cls:'tag-sso', icon:'shield'},
+  'Control de Calidad': {cls:'tag-calidad', icon:'quality'},
+  'Post Venta': {cls:'tag-postventa', icon:'postventa'}
+};
+
+const PHASES = [
+{
+  id:'iniciacion', num:1, name:'Iniciación', icon:'flag',
+  description:'Grupo de procesos que otorga la autorización formal para iniciar el proyecto (o una fase). Cuando se designa al Residente/PM, la autoridad se formaliza mediante el Acta de Constitución del Proyecto.',
+  tools:[
+    {name:'Acta de Constitución del Proyecto / One Page Plan', area:'Construcción / Administración'},
+    {name:'Organigrama y organización de los equipos de trabajo', area:'Construcción'},
+    {name:'Planos actualizados en Plataforma BIM', area:'Construcción'},
+    {name:'Cronograma actualizado de trabajo', area:'Construcción'},
+    {name:'Contrato', area:'Administración'}
+  ],
+  suggested:[
+    {name:'Registro de interesados (cliente, comunidad, autoridades)', area:'Administración'},
+    {name:'Permisos y licencias de construcción vigentes', area:'Administración'},
+    {name:'Acta de recepción / replanteo inicial del terreno', area:'Construcción'}
+  ]
+},
+{
+  id:'planificacion', num:2, name:'Planificación', icon:'clipboard',
+  description:'Define y refina progresivamente los objetivos y el alcance del proyecto, y planifica el curso de acción para lograrlos dentro del tiempo, costo y calidad esperados.',
+  tools:[
+    {name:'Matriz RACI de Comunicación', area:'Construcción'},
+    {name:'Matriz de Riesgos / Oportunidades', area:'Construcción'},
+    {name:'Congelado de Presupuesto / Cuantificaciones', area:'Administración'},
+    {name:'Plano de conjunto, áreas y usos del proyecto', area:'Construcción'},
+    {name:'Políticas y planes SSO', area:'SSO'},
+    {name:'Checklist de pendientes (planos y/o alcances)', area:'Administración'},
+    {name:'Formatos de recepción: Planilla, Subcontratos', area:'Administración'},
+    {name:'Checklist de inicio de obras', area:'Construcción'}
+  ],
+  suggested:[
+    {name:'Plan de instalaciones provisionales y logística de obra', area:'Construcción'},
+    {name:'Plan de gestión ambiental (desechos, ruido, polvo)', area:'SSO'},
+    {name:'Cronograma de adquisiciones y compras', area:'Administración'}
+  ]
+},
+{
+  id:'ejecucion', num:3, name:'Ejecución', icon:'gear',
+  description:'Procesos utilizados para completar el trabajo definido en el plan de gestión del proyecto, con el fin de cumplir con las especificaciones y requisitos establecidos.',
+  tools:[
+    {name:'Control de Subcontratos al día', area:'Construcción / Administración'},
+    {name:'Bitácora de obra al día', area:'Construcción'},
+    {name:'Control de Minutas de reunión', area:'Construcción'},
+    {name:'Formatos de SSO: ATS, Permisos y Asistencia', area:'SSO'},
+    {name:'Formatos Administrativos: Contratos, SR, EP, Punto de Acta, etc.', area:'Administración'},
+    {name:'Programaciones: Concreto, subcontratos, materiales', area:'Administración'},
+    {name:'Reportes de avance a clientes', area:'Administración'},
+    {name:'Manual de toma de decisiones', area:'Construcción / Administración'}
+  ],
+  suggested:[
+    {name:'Control de calidad en recepción de materiales', area:'Control de Calidad'},
+    {name:'Bitácora de gestión de cambios (change orders)', area:'Administración'},
+    {name:'Control de inventario de bodega', area:'Administración'}
+  ]
+},
+{
+  id:'control', num:4, name:'Control y Monitoreo', icon:'gauge',
+  description:'Procesos para supervisar y controlar la ejecución, identificar oportunamente desviaciones y adoptar acciones correctivas, verificando que los entregables cumplan el plan, alcance y objetivos.',
+  tools:[
+    {name:'Checklist de control de Calidad', area:'Control de Calidad'},
+    {name:'Diagrama de burbujas / Proyección de planilla', area:'Construcción'},
+    {name:'Last Planner System', area:'Construcción'},
+    {name:'Incidencias BIM', area:'Construcción'},
+    {name:'Control de Costos: M.O., Costos y Rendimientos', area:'Construcción / Administración'},
+    {name:'Tablero de ubicación de personal / asistencia diaria', area:'Construcción / Administración'},
+    {name:'Control de Trabajos Adicionales', area:'Administración'},
+    {name:'Control de Costos: Materiales y Subcontratos', area:'Construcción / Administración'},
+    {name:'Control de cambios en planos / diseño', area:'Construcción / Administración'},
+    {name:'Monitoreo y control de avances vs. programación', area:'Construcción'},
+    {name:'Plan semanal y diario: reuniones, recorridos y control de avances', area:'Construcción'},
+    {name:'5 Preguntas Básicas diarias', area:'Construcción / Administración'},
+    {name:'Controles y autorizaciones de Horas Extras', area:'Administración'}
+  ],
+  suggested:[
+    {name:'Indicadores KPI: Curva S, productividad, accidentabilidad', area:'Administración'},
+    {name:'Auditorías internas de seguridad', area:'SSO'},
+    {name:'Control de No Conformidades y acciones correctivas', area:'Control de Calidad'}
+  ]
+},
+{
+  id:'cierre', num:5, name:'Cierre', icon:'checkflag',
+  description:'Procesos para finalizar formalmente todas las actividades del proyecto y entregar el producto terminado al cliente, dejando establecido que el proyecto ha concluido.',
+  tools:[
+    {name:'Planos As Built', area:'Construcción / Administración'},
+    {name:'Dossier de Calidad: entrega al cliente', area:'Control de Calidad'},
+    {name:'Garantías al cliente', area:'Post Venta'},
+    {name:'Cierre de Subcontratos y CxP', area:'Administración'},
+    {name:'Lecciones aprendidas', area:'Construcción / Administración'},
+    {name:'Procesos de atención de garantías', area:'Post Venta'}
+  ],
+  suggested:[
+    {name:'Encuesta de satisfacción al cliente', area:'Post Venta'},
+    {name:'Finiquitos y liquidación final de subcontratos', area:'Administración'},
+    {name:'Archivo y cierre documental del proyecto', area:'Administración'}
+  ]
+}
+];
+
+const KNOWLEDGE_AREAS = [
+  {name:'Integración', icon:'gear', desc:'Identifica, define, combina, unifica y coordina todos los recursos y procesos del proyecto.'},
+  {name:'Alcance', icon:'clipboard', desc:'Define y controla qué se incluye y qué no, para entregar el trabajo con los alcances establecidos.'},
+  {name:'Tiempos', icon:'gauge', desc:'Herramientas para controlar el tiempo dedicado y el progreso de las tareas y actividades.'},
+  {name:'Costos y Presupuestos', icon:'briefcase', desc:'Monitorea, establece formatos y criterios para planificar, estimar y controlar los costos.'},
+  {name:'Calidad', icon:'quality', desc:'Herramientas para planear, ejecutar y controlar actividades que cumplan los estándares del cliente.'},
+  {name:'Recursos Humanos', icon:'stakeholders', desc:'Planifica, organiza y administra las tareas relacionadas con las personas del proyecto.'},
+  {name:'Comunicaciones', icon:'flag', desc:'Garantiza la recopilación, distribución y monitoreo oportuno de la información entre interesados.'},
+  {name:'Riesgos', icon:'shield', desc:'Identifica, analiza y responde a los factores de riesgo a lo largo de la ejecución, de forma proactiva.'},
+  {name:'Adquisiciones', icon:'checkflag', desc:'Documenta los pasos y herramientas necesarias para la compra o contratación de servicios.'},
+  {name:'Interesados (Stakeholders)', icon:'stakeholders', desc:'Identifica y gestiona expectativas del cliente, comunidad y autoridades a lo largo del proyecto.', suggested:true}
+];
+
+const RECOMMENDATIONS = [
+  {title:'Estructura correcta y completa', text:'Tu propuesta sigue los 5 grupos de procesos del PMI (Iniciación, Planificación, Ejecución, Control y Cierre), el marco correcto para un manual de residencia de obra.'},
+  {title:'Falta una 10ª área de conocimiento', text:'El listado original cubre 9 de las 10 áreas del PMBOK. Se agregó "Gestión de los Interesados", clave en construcción por permisos, comunidad y relación con el cliente.'},
+  {title:'Reforzar el arranque legal y de terreno', text:'En Iniciación conviene dejar constancia formal del registro de interesados, permisos vigentes y el acta de recepción del terreno antes de movilizar cuadrillas.'},
+  {title:'Logística y medio ambiente en planificación', text:'Un plan de instalaciones provisionales y un plan ambiental básico (desechos, ruido, polvo) evitan retrasos y sanciones frecuentes en obra.'},
+  {title:'Cerrar el ciclo de cambios', text:'En Ejecución y Control, formalizar una bitácora de cambios (change orders) y control de no conformidades da trazabilidad ante reclamos del cliente.'},
+  {title:'Cierre con enfoque comercial', text:'Agregar encuesta de satisfacción y finiquitos formales de subcontratos protege la relación comercial y deja el expediente del proyecto completo.'}
+];
+
+let searchTerm='';
+const STORAGE_KEY = 'e4-manual-obra-progreso-v1';
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  }catch(e){
+    return new Set();
+  }
+}
+
+function saveProgress(keysSet){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(keysSet)));
+  }catch(e){
+    /* almacenamiento no disponible: el checklist sigue funcionando en esta sesión, solo no persiste */
+  }
+}
+
+let checkedKeys = loadProgress();
+
+function tagsHtml(areaStr){
+  return areaStr.split('/').map(a=>a.trim()).map(a=>{
+    const m = AREA_MAP[a] || {cls:'tag-construccion', icon:'hardhat'};
+    return '<span class="tag '+m.cls+'">'+ICONS[m.icon]+a+'</span>';
+  }).join('');
+}
+
+function toolRow(item, idx, suggested, phaseId){
+  const key = phaseId+'-'+(suggested?'s':'o')+'-'+idx;
+  return '<div class="tool-row'+(suggested?' suggested':'')+'" data-name="'+item.name.toLowerCase()+'" data-key="'+key+'" onclick="toggleItem(this)">'+
+    '<div class="tbadge">'+(suggested?'+':idx)+'</div>'+
+    '<div class="tool-name">'+item.name+'</div>'+
+    '<div class="tags">'+tagsHtml(item.area)+(suggested?'<span class="sugerido-flag">Sugerido</span>':'')+'</div>'+
+  '</div>';
+}
+
+function buildPanels(){
+  const tabsEl = document.getElementById('tabs');
+  const panelsEl = document.getElementById('panels');
+  let totalTools = 0;
+  PHASES.forEach((p,i)=>{
+    totalTools += p.tools.length + p.suggested.length;
+    tabsEl.innerHTML += '<button class="phase-tab'+(i===0?' active':'')+'" data-id="'+p.id+'" onclick="switchPhase(\''+p.id+'\')">'+
+      '<span class="tnum">'+p.num+'</span><span class="tab-label">'+p.name+'</span></button>';
+
+    let toolsHtml = p.tools.map((t,idx)=>toolRow(t, idx+1, false, p.id)).join('');
+    let sugHtml = p.suggested.map((t,idx)=>toolRow(t, idx+1, true, p.id)).join('');
+
+    panelsEl.innerHTML += '<div class="phase-panel'+(i===0?' active':'')+'" id="panel-'+p.id+'">'+
+      '<div class="phase-banner">'+ICONS[p.icon]+'<span class="tnum">'+p.num+'</span><h2>'+p.name+'</h2></div>'+
+      '<div class="phase-desc">'+p.description+'</div>'+
+      '<div class="progress-row"><div class="bar-track"><div class="bar-fill" id="bar-'+p.id+'"></div></div><span class="pct" id="pct-'+p.id+'">0%</span></div>'+
+      '<div class="section-label">'+ICONS['clipboard']+' Herramientas de tu propuesta</div>'+
+      toolsHtml+
+      '<div class="section-label">'+ICONS['gear']+' Sugerencias adicionales (análisis PMP)</div>'+
+      sugHtml+
+    '</div>';
+  });
+  document.getElementById('stat-tools').textContent = totalTools;
+}
+
+function buildKA(){
+  const grid = document.getElementById('kaGrid');
+  KNOWLEDGE_AREAS.forEach(k=>{
+    grid.innerHTML += '<div class="ka-card'+(k.suggested?' suggested':'')+'">'+
+      (k.suggested?'<span class="ka-ribbon">Sugerido</span>':'')+
+      '<div class="ka-top"><div class="ka-icon">'+ICONS[k.icon]+'</div><h3>'+k.name+'</h3></div>'+
+      '<p>'+k.desc+'</p></div>';
+  });
+}
+
+function buildReco(){
+  const grid = document.getElementById('recoGrid');
+  RECOMMENDATIONS.forEach(r=>{
+    grid.innerHTML += '<div class="reco-card"><h4>'+r.title+'</h4><p>'+r.text+'</p></div>';
+  });
+}
+
+function switchPhase(id){
+  document.querySelectorAll('.phase-tab').forEach(t=>t.classList.toggle('active', t.dataset.id===id));
+  document.querySelectorAll('.phase-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+id));
+  applySearch();
+}
+
+function toggleItem(el){
+  el.classList.toggle('checked');
+  const key = el.dataset.key;
+  if(el.classList.contains('checked')){ checkedKeys.add(key); } else { checkedKeys.delete(key); }
+  saveProgress(checkedKeys);
+  const phaseId = el.closest('.phase-panel').id.replace('panel-','');
+  updateProgress(phaseId);
+  updateOverall();
+}
+
+function applyStoredProgress(){
+  document.querySelectorAll('.tool-row').forEach(row=>{
+    if(checkedKeys.has(row.dataset.key)) row.classList.add('checked');
+  });
+}
+
+function resetProgress(){
+  if(!confirm('¿Reiniciar todo el progreso del checklist? Esta acción no se puede deshacer.')) return;
+  checkedKeys = new Set();
+  saveProgress(checkedKeys);
+  document.querySelectorAll('.tool-row.checked').forEach(row=>row.classList.remove('checked'));
+  PHASES.forEach(p=>updateProgress(p.id));
+  updateOverall();
+}
+
+function updateProgress(phaseId){
+  const panel = document.getElementById('panel-'+phaseId);
+  const rows = panel.querySelectorAll('.tool-row');
+  const checked = panel.querySelectorAll('.tool-row.checked').length;
+  const pct = rows.length ? Math.round(checked/rows.length*100) : 0;
+  document.getElementById('bar-'+phaseId).style.width = pct+'%';
+  document.getElementById('pct-'+phaseId).textContent = pct+'%';
+}
+
+function updateOverall(){
+  const rows = document.querySelectorAll('.tool-row');
+  const checked = document.querySelectorAll('.tool-row.checked').length;
+  const pct = rows.length ? Math.round(checked/rows.length*100) : 0;
+  document.getElementById('overallBar').style.width = pct+'%';
+  document.getElementById('overallLabel').textContent = checked+' / '+rows.length+' completado';
+}
+
+function applySearch(){
+  const activePanel = document.querySelector('.phase-panel.active');
+  if(!activePanel) return;
+  activePanel.querySelectorAll('.tool-row').forEach(row=>{
+    const match = row.dataset.name.includes(searchTerm);
+    row.style.display = match ? 'flex' : 'none';
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', e=>{
+  searchTerm = e.target.value.trim().toLowerCase();
+  applySearch();
+});
+
+document.getElementById('heroIcon').innerHTML = ICONS.hardhat;
+document.getElementById('searchIcon').outerHTML = ICONS.search;
+document.getElementById('printIcon').outerHTML = ICONS.print;
+
+buildPanels();
+buildKA();
+buildReco();
+applyStoredProgress();
+PHASES.forEach(p=>updateProgress(p.id));
+updateOverall();
+</script>
+</body>
+</html>
